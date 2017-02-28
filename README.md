@@ -40,15 +40,14 @@ Automatic On-Chip buffer management.
 - For FPGAs, the on-chip cache is much smaller than the data it tries operates on.
 - There is a need for cache with explicit copy-in & copy-out instructions.
  
-Proposed method does the following:  
+#### Proposed method does the following:  
 Estimates the *On-chip buffer size*  and *associated communications* in one iteration of a loop. Data reuse between successive iterations of loop.
 When the above technique is applied to the  
-1. Innermost loop - It gives the number of registers required by the program. 
-2. Outermost loop - Equivalent to the entire program space.
+1. Innermost loop - It gives the number of registers required by the program. 2. Outermost loop - Equivalent to the entire program space.
 
 How the technique is designed -
-Use Parametric Polyhedral Sets to represent the set of Array elements used at a particular time in computation. These correspond to - Memory Accesses (Reuse / Write), Communication sets.
-Change memory references in original code to on-chip buffer references.
+1. Use Parametric Polyhedral Sets to represent the set of Array elements used at a particular time in computation. These correspond to - **Memory Accesses (Reuse / Write), Communication sets.**
+2. Change memory references in original code to on-chip buffer references.
 
 ## Definitions:
 1. Data space. All unique array elements accessed by a bunch of statements. (Polyhedra of array accesses)
@@ -65,13 +64,13 @@ Local Buffer Computation - Obtained by taking Rectangular Convex Hull of domain 
 CodeGen Algorithm -
 1. createLocalBufferDecl —> Creates declaration to local array of same data type - Argument array. Size calculated by rectangular hull of argument set.
 2. createScanningCodeIn —> Creates scan for all elements in Polyhedral set.
-3. createScanningCodeOut  
+3. createScanningCodeOut -> Same operation as above, element in consideration is on left of assignment.
 4. converGlobalToLocalRef —> Converts all references to the global array with references to local in-cache array
 
 HLS Specific Optimizations -
 **Fine grain parallelism exposure, Pipelining exposure.**
-1. Communication Prefetching and Overlapping. Evident from before, Prefetching data at iteration i = PerIterCommunication at iteration i+1.
-2. Pipelining. Start execution of successive iterations of the loop - (Since fetch, compute algorithmic units are independent) Expose Inner loop parallelism —> Done by applying constraints like (#pragma AP pipeline II=1 ) while and after Tiling Hyperplanes method. (#pragma AP dependence inter false). There exists a large amount of parallelism inside a single loop iteration. This can be captured by polyhedral scheduling. Focusing on a single loop at a time by using the appropriate PDS —> compute a graph of dependent operations within a given iteration of the loop body.  This dependence graph is used to re- structure the code —> collection of separate functions for tasks that can be run in parallel
+1. Communication Prefetching and Overlapping. <br/>Evident from before, Prefetching data at iteration i = PerIterCommunication at iteration i+1.
+2. Pipelining.  <br/>Start execution of successive iterations of the loop - (Since fetch, compute algorithmic units are independent) <br/>Expose Inner loop parallelism —> Done by applying constraints like (#pragma AP pipeline II=1 ) and (#pragma AP dependence inter false) at the time of and after Tiling Hyperplanes method. <br/>There exists a large amount of parallelism inside a single loop iteration. This can be captured by polyhedral scheduling. Focusing on a single loop at a time by using the appropriate PDS —> compute a graph of dependent operations within a given iteration of the loop body.  This dependence graph is used to re- structure the code —> collection of separate functions for tasks that can be run in parallel
 
 ## Section 4. 
 Resource-Constrained On-Chip Buffer Management
