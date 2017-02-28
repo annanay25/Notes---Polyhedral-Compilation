@@ -1,13 +1,15 @@
-# Notes---Polyhedral-Compilation
+## Notes---Polyhedral-Compilation
 
 High Level Synthesis Tools for designing programs written in Behavioral Programming Language like C/C++.
 
 Behavioral Language - Modular, composite program design. Consists of threads of program behavior inter-woven at runtime that together simulate the behavior of the program.
 
-- Ideally, we would like to have a HLS that can write target optimized and specialized design in a Behavioral language like C/C++.  Attempts have been made but the designer still has to hand code a lot of parts. Key issues: On-chip buffer management, choice of degree of parallelism / pipelining, extent of prefetching, etc.
-- Objective: Develop Automated compiler support for source to source transformations using advances in Polyhedral compilation.
+- Ideally, we would like to have a HLS that can write target optimized and specialized design in a Behavioral language like C/C++.  Attempts have been made but the designer still has to hand code a lot of parts.
+   Key issues: On-chip buffer management, choice of degree of parallelism / pipelining, extent of prefetching, etc.
+- Objective:
+   Develop Automated compiler support for source to source transformations using advances in Polyhedral compilation.
 
-Section 3.
+## Section 3.
 In this section:
 - Multi-stage process to efficiently transform a C program to run on FPGAs. 1. Method uses design space exploration to determine best performing program variant. 2. Search of best variants done through exploration of different rectangular tile sizes. 3. Each tile size gives a new program variant - in terms of - communication schedule, loop to be tiled etc. 
 Each program variant is built as follows (Brief Overview)
@@ -15,23 +17,25 @@ Each program variant is built as follows (Brief Overview)
 - Promote data accesses to on-chip buffers in the transformed program. Data reuse between consecutive iterations of the loop are exploited. Here, hardware buffer size constraint is preserved.
 - Perform HLS specific coarse / fine grained optimizations.
 
-Section 3.1
-What is Polyhedral Compilation?
+## Section 3.1
+
+# What is Polyhedral Compilation?
 ￼
  Polyhedral compilation is a way of modelling iterations of loop nests into points on a multidimensional space. Each dimension of the space represents one level of the loop nest and every point in the space refers to the state (or the value of the loop iterators) in one execution of the loop statement. Once this is done, we run a dependence analysis on the loop to check which instances of the loop statement execution depend on each other and hence may cause hindrance to parallelize the loop. For ex: Consider the following loop nest -  for (i = 1; i < N; i++) 	for (j = 1; j < M; j++) 		A[i][j] = SCALAR_VAL(0.5) * (A[i-1][j] + A[i][j-1]);  In this case, observe that since evaluation of A[i][j] depends on its neighbors A[i-1][j] & A[i][j-1], there is a dependence in the sense that we cannot evaluate the value of A[i][j] before we evaluate the value of A[i-1][j] & A[i][j-1] (they themselves are dependent on A[i-2][j] & A[i-1][j-1] and A[i-1][j-1] & A[i][j-2] and so on…). Hence, we get a dependence graph on the iteration kernel as shown in the above figure. 
+
 The loops identified as having affine expressions are called SCoPs (Static Control Parts)
 
 - It is a flexible and expressive framework used for loops that contain statically predictable control flow.
 - Loop nests in which statements use affine accesses (Linear function of induction variable and program parameters) of array elements are called Static Control Parts.
 
 
-Section 3.2
+# Section 3.2
 The next step is to perform polyhedral optimizations on the program. A single step in polyhedral compilation captures what corresponds to a sequence of several textbook loop optimizations. It carefully crafts a multidimensional affine schedule and as a result transforms the iteration space.
 - Make polyhedral optimization that is geared towards maximizing coarse grained parallelism and data locality.
 - Implemented through a complex combination of multidimensional tiling, skewing, fusion etc. Also known as the Tiling Hyperplanes method.
 - If possible, parallel loops are brought to outer levels —> this technique is applied on every SCoP of the program.
 
-Section 3.3
+# Section 3.3
 Automatic On-Chip buffer management.
 - Most devices use a hardware-managed caches to store frequently accessed data.
 - For FPGAs, the on-chip cache is much smaller than the data it tries operates on.
@@ -43,7 +47,7 @@ How the technique is designed -
 Use Parametric Polyhedral Sets to represent the set of Array elements used at a particular time in computation. These correspond to - Memory Accesses (Reuse / Write), Communication sets.
 Change memory references in original code to on-chip buffer references.
 
-Definitions:
+# Definitions:
 1. Data space. All unique array elements accessed by a bunch of statements. (Polyhedra of array accesses)
 2. Parametric Domain Slide (PDS) - The polyhedra represented by fixing bounds on all outer loop params. (Do not fix bounds on loop under consideration) - (Polyhedra of Iteration Domain)
 3. Data space of a loop iteration - Polyhedra representing unique data elements accessed relative to iteration domain.
@@ -72,6 +76,6 @@ Algo:
 
 Solution space = For the cross product of arrays and loops —> Calculate ( buffer size, bandwidth requirement ) tuple for each combination.
 
-Optimization Problem =  	Sum of buffer sizes < Available on-chip resources. such that. Bandwidth use is maximized.
+Optimization Problem =  	*Sum of buffer sizes < Available on-chip resources. such that. Bandwidth use is maximized*
 
 How to get max bandwidth use? Choose effective tile sizes. TBD in Section 5.
